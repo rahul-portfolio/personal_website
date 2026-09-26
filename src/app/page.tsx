@@ -1,3 +1,4 @@
+// PRODUCTION_BUILD_FIX_V2
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Canvas } from '@react-three/fiber';
