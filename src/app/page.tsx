@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import Head from 'next/head';
 import { Canvas } from '@react-three/fiber';
@@ -227,7 +229,7 @@ export default function Home() {
             © 2026 Rahul Mahindra // New York, NY // OPERATOR_OS_V6
           </div>
         </div>
-      </footer>
+      </footer}
       <CommandPalette />
     </div>
   );
