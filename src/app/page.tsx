@@ -229,7 +229,7 @@ export default function Home() {
             © 2026 Rahul Mahindra // New York, NY // OPERATOR_OS_V6
           </div>
         </div>
-      </footer}
+      </footer>
       <CommandPalette />
     </div>
   );
