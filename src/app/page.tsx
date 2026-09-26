@@ -2,13 +2,32 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Float, MeshDistortMaterial, MeshWobbleMaterial, PerspectiveCamera } from '@react-three/drei';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Briefcase, User, Linkedin, Mail, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
 import CommandPalette from '@/components/CommandPalette';
+
+// --- TYPES ---
+interface Mode {
+  builder: string;
+  executive: string;
+}
+
+type ModeState = 'builder' | 'executive';
+
+interface Stat {
+  label: string;
+  value: string;
+}
+
+interface ModeContent {
+  badge: string;
+  color: string;
+  desc: string;
+  stats: Stat[];
+}
 
 // --- 3D COMPONENTS ---
 
-function SceneObject({ mode }) {
+function SceneObject({ mode }: { mode: ModeState }) {
   return (
     <Float speed={2} rotationIntensity={1} floatIntensity={1}>
       {mode === 'builder' ? (
@@ -28,7 +47,7 @@ function SceneObject({ mode }) {
 
 // --- UI COMPONENTS ---
 
-const ModeToggle = ({ currentMode, setMode }) => {
+const ModeToggle = ({ currentMode, setMode }: { currentMode: ModeState, setMode: (mode: ModeState) => void }) => {
   return (
     <div className="flex items-center gap-3 p-1 bg-zinc-900 border border-zinc-800 w-fit cursor-pointer">
       <button 
@@ -51,10 +70,17 @@ const ModeToggle = ({ currentMode, setMode }) => {
   );
 };
 
-export default function Home() {
-  const [mode, setMode] = useState('builder');
+const evidenceData = [
+  { company: "Walmart / Agent Builder", title: "Governed Production Agents", desc: "Architected the foundation for production-grade AI agents. Scaled the internal community from 1 to 30, delivering verifiable business impact in the WBR window.", statValue: "35k+", statLabel: "Verified Tags" },
+  { company: "Wonder / Growth Ops", title: "Predictive Demand Growth", desc: "Deployed predictive demand models for routing and labor, enabling rapid geographic expansion and contributing to 3x ARR growth.", statValue: "13x", statLabel: "User Base" },
+  { company: "Walmart / eCommerce", title: "Digital Transformation", desc: "Implemented AI-enabled capabilities for merchant productivity, resulting in $150M incremental GMV and $15M annual OpEx savings.", statValue: "$150M", statLabel: "Incremental GMV" },
+  { company: "Walmart / Supply Chain", title: "Transportation Automation", desc: "Led end-to-end visibility and traceability systems across Walmart's U.S. transportation network, delivering $100M+ in long-range cost savings.", statValue: "$100M+", statLabel: "Cost Savings" },
+];
 
-  const content = {
+export default function Home() {
+  const [mode, setMode] = useState<ModeState>('builder');
+
+  const content: Record<ModeState, ModeContent> = {
     builder: {
       badge: '[ROLE: AGENT BUILDER / AI OPERATOR] | [FOCUS: TOOL CALLING, BPMN, MULTI-AGENT SYSTEMS]',
       color: 'text-blue-400',
@@ -83,7 +109,6 @@ export default function Home() {
         <title>Rahul Mahindra | Enterprise AI Operator</title>
       </Head>
 
-      {/* Navigation */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center mix-blend-difference">
         <div className="mono text-xs font-bold uppercase tracking-tighter">RM / OPERATOR</div>
         <div className="flex gap-8 text-[10px] mono uppercase tracking-widest">
@@ -92,9 +117,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center px-6 overflow-hidden">
-        {/* 3D Background Canvas */}
         <div className="absolute inset-0 z-0 opacity-60">
           <Canvas>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} />
@@ -150,7 +173,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Telemetry Panel */}
           <div className="hidden lg:block relative">
             <div className="p-8 bg-zinc-900/50 border border-zinc-800 backdrop-blur-xl">
               <div className="mono text-[10px] text-zinc-500 mb-6 uppercase tracking-widest flex justify-between">
@@ -167,7 +189,7 @@ export default function Home() {
                     className="flex justify-between items-center border-b border-zinc-800 pb-2"
                   >
                     <span className="mono text-[10px] text-zinc-500 uppercase">{stat.label}</span>
-                    <span className,="mono text-sm font-bold text-white">{stat.value}</span>
+                    <span className="mono text-sm font-bold text-white">{stat.value}</span>
                   </motion.div>
                 ))}
               </div>
@@ -176,7 +198,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Evidence Section */}
       <section id="evidence" className="py-32 px-6 md:px-20 bg-white text-black">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-[10px] mono uppercase tracking-widest text-zinc-500 mb-20">Operating Evidence</h2>
@@ -199,7 +220,7 @@ export default function Home() {
       </section>
 
       <footer className="py-32 px-6 text-center bg-black text-white">
-        <div className="max-//xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-12 uppercase leading-[0.9]">
             Build the <br> next generation of agents.
           </h2>
@@ -212,15 +233,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <CommandPalette />
     </div>
   );
 }
-
-<CommandPalette />
-
-const evidenceData = [
-  { company: "Walmart / Agent Builder", title: "Governed Production Agents", desc: "Architected the foundation for production-grade AI agents. Scaled the internal community from 1 to 30, delivering verifiable business impact in the WBR window.", statValue: "35k+", statLabel: "Verified Tags" },
-  { company: "Wonder / Growth Ops", title: "Predictive Demand Growth", desc: "Deployed predictive demand models for routing and labor, enabling rapid geographic expansion and contributing to 3x ARR growth.", statValue: "13x", statLabel: "User Base" },
-  { company: "Walmart / eCommerce", title: "Digital Transformation", desc: "Implemented AI-enabled capabilities for merchant productivity, resulting in $150M incremental GMV and $15M annual OpEx savings.", statValue: "$150M", statLabel: "Incremental GMV" },
-  { company: "Walmart / Supply Chain", title: "Transportation Automation", desc: "Led end-to-end visibility and traceability systems across the US transportation network, delivering $100M+ in long-range cost savings.", statValue: "$100M+", statLabel: "Cost Savings" },
-];
