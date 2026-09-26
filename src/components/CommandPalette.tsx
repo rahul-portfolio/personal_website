@@ -17,7 +17,7 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsOpen((prev) => !prev);
@@ -77,7 +77,7 @@ export default function CommandPalette() {
 
               <div className="max-h-96 overflow-y-auto p-2">
                 {filteredCommands.length > 0 ? (
-                  filteredCommands.map((item, i) => (
+                  filteredCommands.map((item) => (
                     <div 
                       key={item.cmd}
                       onClick={() => {
