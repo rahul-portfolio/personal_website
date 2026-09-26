@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import Head from 'next/head';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
@@ -12,19 +12,15 @@ import {
   Box,
   Cylinder
 } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Mic,
-  MicOff,
-  PhoneOff,
-  Settings,
   BarChart3,
-  Play,
-  Pause,
+  Settings,
   ExternalLink,
-  Cpu,
   Briefcase,
-  FileText
+  FileText,
+  User
 } from 'lucide-react';
 import * as THREE from 'three';
 import CommandPalette from '@/components/CommandPalette';
@@ -39,11 +35,11 @@ interface Project {
   link: string;
 }
 
-interface Article {
+interface Thought {
   title: string;
   excerpt: string;
   category: string;
-  duration: string;
+  date: string;
 }
 
 // --- DATA ---
@@ -54,64 +50,94 @@ const PROJECTS: Project[] = [
   { title: "Supply Chain Visibility", description: "End-to-end traceability for U.S. transportation networks.", tags: ["Java", "BigQuery", "Logistics"], link: "#" },
 ];
 
-const ARTICLES: Article[] = [
-  { title: "The Last Mile of AI", excerpt: "Moving from viral demos to governed, scalable agentic systems.", category: "Technical", duration: "4:12" },
-  { title: "Bridging the Production Gap", excerpt: "Why most LLM projects fail at the deployment stage.", category: "Strategy", duration: "6:45" },
-  { title: "The Operator's Mindset", excerpt: "Blending technical depth with executive strategy in the AI era.", category: "Mindset", duration: "5:30" },
+const THOUGHTS: Thought[] = [
+  { title: "The Last Mile of AI", excerpt: "Moving from viral demos to governed, scalable agentic systems.", category: "Technical", date: "Sept 2026" },
+  { title: "Bridging the Production Gap", excerpt: "Why most LLM projects fail at the deployment stage.", category: "Strategy", date: "Aug 2026" },
+  { title: "The Operator's Mindset", excerpt: "Blending technical depth with executive strategy in the AI era.", category: "Mindset", date: "July 2026" },
 ];
 
 // --- 3D COMPONENTS ---
 
-function AgenticScene() {
+function SceneModel({ mode }: { mode: CharacterMode }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    const t = state.clock.getElapsedTime();
+    meshRef.current.rotation.x = Math.sin(t / 4) * 0.2;
+    meshRef.current.rotation.y = Math.cos(t / 3) * 0.2;
+  });
+
   return (
-    <group position={[0, -0.5, 0]}>
-      <Box args={[3, 0.1, 2]} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.2} />
-      </Box>
-      <Box args={[0.8, 0.05, 0.3]} position={[0, 0.06, 0.2]}>
-        <meshStandardMaterial color="#0f172a" />
-      </Box>
-      <group position={[1, 0.2, 0]}>
-        <Cylinder args={[0.02, 0.02, 0.8]} position={[0, 0.4, 0]}>
-          <meshStandardMaterial color="#475569" />
-        </Cylinder>
-        <mesh position={[0, 0.8, 0]}>
-          <sphereGeometry args={[0.1, 16, 16]} />
-          <meshStandardMaterial color="#94a3b8" metalness={1} />
-        </mesh>
-      </group>
-      <group position={[-1, 0, -0.5]}>
-        <Cylinder args={[0.02, 0.02, 1]} position={[0, 0.5, 0]} rotation={[0.2, 0, 0]}>
-          <meshStandardMaterial color="#475569" />
-        </Cylinder>
-        <mesh position={[0, 1, 0]} rotation={[-Math.PI/2, 0, 0]}>
-          <cylinderGeometry args={[0.1, 0.2, 0.1, 16]} />
-          <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={2} />
-        </mesh>
-      </group>
-    </group>
+    <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
+      <mesh ref={meshRef} castShadow receiveShadow>
+        {mode === 'agentic' ? (
+          <>
+            <torusKnotGeometry args={[1, 0.3, 128, 32]} />
+            <meshStandardMaterial
+              color="#3b82f6"
+              metalness={1}
+              roughness={0.1}
+              emissive="#1d4ed8"
+              emissiveIntensity={0.2}
+            />
+          </>
+        ) : (
+          <>
+            <sphereGeometry args={[1.2, 64, 64]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              metalness={1}
+              roughness={0.05}
+              emissive="#ffffff"
+              emissiveIntensity={0.1}
+            />
+          </>
+        )}
+      </mesh>
+    </Float>
   );
 }
 
-function ExecutiveScene() {
+function SceneCanvas({ mode }: { mode: CharacterMode }) {
   return (
-    <group position={[0, -0.5, 0]}>
-      <Box args={[4, 0.1, 1.5]} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.1} />
-      </Box>
-      <Box args={[2.5, 1.5, 0.05]} position={[0, 0.8, -0.8]}>
-        <meshStandardMaterial color="#1e293b" transparent opacity={0.4} metalness={1} roughness={0} />
-      </Box>
-      <group position={[0, 0.2, 0.5]}>
-        <Cylinder args={[0.2, 0.2, 1]} position={[0, 0.5, 0]}>
-          <meshStandardMaterial color="#020617" />
-        </Cylinder>
-        <mesh position={[0, 1.2, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial color="#f1f5f9" />
-        </mesh>
-      </group>
-    </group>
+    <>
+      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        minPolarAngle={Math.PI / 3}
+        maxPolarAngle={Math.PI / 2}
+      />
+
+      <ambientLight intensity={0.2} />
+      <spotLight
+        position={[10, 10, 10]}
+        angle={0.15}
+        penumbra={1}
+        intensity={2}
+        castShadow
+      />
+      <pointLight position={[-10, -10, -10]} color="#3b82f6" intensity={1} />
+
+      <Suspense fallback={null}>
+        <SceneModel mode={mode} />
+        <ContactShadows
+          position={[0, -2, 0]}
+          opacity={0.6}
+          scale={10}
+          blur={2}
+          far={4.5}
+        />
+        <Environment preset="city" />
+      </Suspense>
+
+      <EffectComposer>
+        <Bloom luminanceThreshold={1} intensity={1.5} levels={9} mipmapBlur />
+        <Noise opacity={0.05} />
+        <Vignette offset={0.1} darkness={1.1} />
+      </EffectComposer>
+    </>
   );
 }
 
@@ -125,79 +151,21 @@ const Header = ({ mode, setMode }: { mode: CharacterMode, setMode: (m: Character
         <BarChart3 size={14} /> RahulMetrics
       </button>
       <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
-        <Settings size={14} /> Voice Settings
+        <Settings size={14} /> Settings
       </button>
       <div className="h-6 w-[1px] bg-slate-800 mx-2" />
       <button
         onClick={() => setMode(mode === 'agentic' ? 'executive' : 'agentic')}
         className="px-4 py-2 bg-white text-black text-[10px] uppercase font-black rounded-lg hover:bg-slate-200 transition-colors"
       >
-        Switch to {mode === 'agentic' ? 'Executive' : 'Agentic'}
+        Mode: {mode === 'agentic' ? 'Agentic' : 'Executive'}
       </button>
     </div>
   </nav>
 );
 
-const RahulBotDock = ({ isActive, setIsActive, isMuted, setIsMuted }: any) => {
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    let interval: any;
-    if (isActive) {
-      interval = setInterval(() => setDuration(d => d + 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isActive]);
-
-  const formatTime = (s: number) => {
-    const h = Math.floor(s / 3600).toString().padStart(2, '0');
-    const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
-    const sec = (s % 60).toString().padStart(2, '0');
-    return `${h}:${m}:${sec}`;
-  };
-
-  return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl p-4 rounded-2xl bg-slate-950/80 backdrop-blur-2xl border border-slate-800/80 shadow-2xl flex items-center justify-between gap-6 transition-all duration-500">
-      <div className="flex items-center gap-4 overflow-hidden">
-        <div className="flex gap-1 items-end h-6">
-          {[...Array(12)].map((_, i) => (
-            <motion.div 
-              key={i} 
-              animate={isActive ? { height: [4, Math.random() * 24 + 4, 4] } : { height: 4 } }
-              transition={{ repeat: Infinity, duration: 0.5 + Math.random(), ease: "easeInOut" }}
-              className="w-1 bg-emerald-500 rounded-full"
-            />
-          ))}
-        </div>
-        <div className="text-[11px] text-slate-400 font-medium truncate">
-          {isActive ? "RahulBot™ is listening..." : "Captions will appear here..."}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="text-[11px] mono text-slate-500 mr-4">{formatTime(duration)}</div>
-        <button 
-          onClick={() => setIsMuted(!isMuted)}
-          className={`p-3 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
-        >
-          {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-        </button>
-        <button 
-          onClick={() => setIsActive(!isActive)}
-          className={`p-3 rounded-full transition-all ${isActive ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
-        >
-          {isActive ? <PhoneOff size={18} /> : <Play size={18} />}
-        </button>
-      </div>
-    </div>
-  );
-};
-
 export default function Home() {
   const [characterMode, setCharacterMode] = useState<CharacterMode>('agentic');
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [activeAudioArticle, setActiveAudioArticle] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[#0b0f17] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
@@ -211,85 +179,74 @@ export default function Home() {
 
       <Header mode={characterMode} setMode={setCharacterMode} />
 
-      <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-12 pb-32">
-        <section className="h-[520px] rounded-2xl border border-slate-800/80 bg-slate-900/30 overflow-hidden relative flex items-center justify-center group">
-          <Canvas dpr={[1, 2]}>
-            <PerspectiveCamera makeDefault position={[5, 5, 5]} />
-            <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2} />
-            <ambientLight intensity={0.3} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-            <pointLight position={[-10, -10, -10]} color="#3b82f6" intensity={0.5} />
-            
-            {characterMode === 'agentic' ? <AgenticScene /> : <ExecutiveScene />}
-            
-            <ContactShadows position={[0, -0.6, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
-            <Environment preset="city" />
+      <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32">
+        <section className="h-[600px] rounded-3xl border border-slate-800/80 bg-slate-900/30 overflow-hidden relative flex items-center justify-center group">
+          <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+            <SceneCanvas mode={characterMode} />
           </Canvas>
-
-          <RahulBotDock 
-            isActive={isCallActive} 
-            setIsActive={setIsCallActive} 
-            isMuted={isMuted} 
-            setIsMuted={setIsMuted} 
-          />
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-            <Cpu size={14} /> System Recommendations
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x no-scrollbar">
-            {['Enterprise AI', 'Agentic Workflows', 'Strategic Scaling', 'LLM Ops', 'Digital Transformation'].map((item, i) => (
-              <div 
-                key={i} 
-                className="snap-start shrink-0 w-64 p-5 rounded-xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-600 transition-all cursor-pointer group"
-              >
-                <div className="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">{item}</div>
-                <div className="text-xs text-slate-500 mt-2">Optimized Framework v2.4</div>
-              </div>
-            ))}
+          
+          <div className="absolute bottom-10 left-10">
+             <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">
+               System State: {characterMode === 'agentic' ? 'OPERATOR_MODE' : 'EXECUTIVE_MODE'}
+             </div>
+             <div className="text-2xl font-bold text-white uppercase tracking-tighter">
+               {characterMode === 'agentic' ? 'Agentic Architecture' : 'Strategic Leadership'}
+             </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <section className="lg:col-span-4 space-y-6">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <FileText size={14} /> Articles & Notes
+              <User size={14} /> About
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {ARTICLES.map((article, i) => (
+            <div className="p-8 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
+              <h3 className="text-xl font-bold text-slate-100 mb-4">The AI Operator</h3>
+              <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                Bridging the gap between raw technical power and executive strategy. I architect governed, scalable agentic systems for the Fortune 100, focusing on the last mile of AI deployment.
+              </p>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
+                  <span>Location</span>
+                  <span className="text-slate-300">New York, NY</span>
+                </div>
+                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
+                  <span>Focus</span>
+                  <span className="text-slate-300">Enterprise AI / Scale</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <FileText size={14} /> Thoughts
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {THOUGHTS.map((thought, i) => (
                 <div 
                   key={i} 
-                  className="p-6 rounded-xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:bg-slate-900/50 transition-all group"
+                  className="p-6 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:bg-slate-900/50 transition-all group cursor-pointer"
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-[10px] uppercase font-black text-emerald-500 tracking-tighter">{article.category}</span>
-                    <button 
-                      onClick={() => setActiveAudioArticle(activeAudioArticle === article.title ? null : article.title)}
-                      className="p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors"
-                    >
-                      {activeAudioArticle === article.title ? <Pause size={14} /> : <Play size={14} />}
-                    </button>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] uppercase font-black text-emerald-500 tracking-tighter">{thought.category}</span>
+                    <span className="text-[10px] mono text-slate-600">{thought.date}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">{article.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{article.excerpt}</p>
-                  <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-600 mono">
-                    <span>Duration: {article.duration}</span>
-                  </div>
+                  <h3 className="text-base font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">{thought.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{thought.excerpt}</p>
                 </div>
-              ))}
-            </div>
-          </div>
+              ))}\n            </div>
+          </section>
 
-          <div className="space-y-6">
+          <section className="lg:col-span-4 space-y-6">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <Briefcase size={14} /> Active Builds
+              <Briefcase size={14} /> Projects
             </div>
             <div className="space-y-4">
               {PROJECTS.map((project, i) => (
                 <div 
                   key={i} 
-                  className="p-5 rounded-xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-600 transition-all group cursor-pointer"
+                  className="p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-600 transition-all group cursor-pointer"
                 >
                   <div className="flex justify-between items-center mb-2">
                     <h4 className="text-sm font-bold text-slate-100">{project.title}</h4>
@@ -299,12 +256,10 @@ export default function Home() {
                   <div className="flex flex-wrap gap-2">
                     {project.tags.map(tag => (
                       <span key={tag} className="text-[9px] uppercase font-bold px-2 py-0.5 bg-slate-800 text-slate-400 rounded">{tag}</span>
-                    ))}
-                  </div>
+                    ))}\n                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              ))}\n            </div>
+          </section>
         </div>
       </main>
 
@@ -315,16 +270,6 @@ export default function Home() {
       </footer>
 
       <CommandPalette />
-
-      <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
