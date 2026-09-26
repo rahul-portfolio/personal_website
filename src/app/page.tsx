@@ -217,7 +217,7 @@ export default function Home() {
       <footer className="py-32 px-6 text-center bg-black text-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-12 uppercase leading-[0.9]">
-            Build the <br> next generation of agents.
+            Build the <br /> next generation of agents.
           </h2>
           <div className="flex justify-center gap-12 mono text-xs uppercase tracking-widest">
             <a href="mailto:rmahindra687@gmail.com" className="hover:text-gray-400 transition border-b border-white pb-1">Email</a>
@@ -232,4 +232,3 @@ export default function Home() {
     </div>
   );
 }
-// BUILD_ID: 1790427703
