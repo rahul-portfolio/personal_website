@@ -1,5 +1,4 @@
-// PRODUCTION_BUILD_FIX_V2
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Float, MeshDistortMaterial, MeshWobbleMaterial, PerspectiveCamera } from '@react-three/drei';
@@ -7,11 +6,6 @@ import { motion } from 'framer-motion';
 import CommandPalette from '@/components/CommandPalette';
 
 // --- TYPES ---
-interface Mode {
-  builder: string;
-  executive: string;
-}
-
 type ModeState = 'builder' | 'executive';
 
 interface Stat {
