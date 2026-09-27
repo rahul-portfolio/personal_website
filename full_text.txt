@@ -1,0 +1,56 @@
+Desk of Ry - Ryan Haigh's Interactive AI Voice Portfolio
+Propagate is live! Launch the procedural farm sim game.  🌱
+Thoughts
+Memory
+About
+☀️
+mic
+Chat with RyBot™
+SIDE QUESTS
+Critters.wtf
+2026
+A world of adoptable domains, brought to life as animated creatures. Explore a lunar outpost, complete with personalities, customizable outfits, and emotes.
+Propagate
+2026
+A procedural pixel farming sim of agentic farmers in an ever-expanding world. They form bonds, hold elections, and defend the town from orc raids. A long-term memory layer gives every farmer a persistent inner life and remembers what the town lives through, so the world carries its own history forward. Sprites by CraftPix
+Play the live demo
+Retro Cam
+2025–ongoing
+Digital camera experience built on top of ESP32‑S3 AI camera module. Connects to phone via WiFi or Bluetooth to enable retro aesthetic and camera controls. Hardware prototype currently a WIP.
+Clay Keeper
+2025–ongoing
+Humidity and clay storage management system for ceramic studios. MVP currently in testing with potters. V2 in progress with additional pottery tools in the works.
+Dough (Autonomous Trader)
+2025
+Autonomous trading platform leveraging agentic swarms to collaborate on exploring algorithmic strategies and market analysis. Buys/sells occur automatically with agent portfolio management. Fork public repo
+AUTHORED SKILLS
+/council
+Skill
+Bring independent AI reviewers together to stress-test a draft, compare their findings, and decide what to improve.
+Read the article
+Download the skill ↓
+/met
+Skill
+Turn The Met’s open-access 3D scans into objects you can print at home, from choosing a sculpture to preparing the model.
+Read the article
+Download the skill ↓
+/karpathy-loop
+Skill
+Define what success looks like, start with the simplest implementation, and verify the result before calling it done.
+
+Download the skill ↓
+/nes-aesthetic
+Skill
+Build NES-style interfaces and games with a classic pixel palette, chiptune sounds, and matching game mechanics.
+
+Download the skill ↓
+/paper-shader
+Skill
+Turn Paper Design shader settings into crisp, high-resolution images for your website, without shipping a live shader.
+
+Download the skill ↓
+Agent Chime
+Hook
+A small sound for the moment Claude Code finishes its work, so you can step away without watching the terminal. For macOS.
+
+Download the hook ↓

@@ -1,0 +1,342 @@
+"use client";
+
+import React, { useState, useRef, Suspense } from 'react';
+import Head from 'next/head';
+import { Canvas, useFrame } from '@react-three/fiber';
+import {
+  OrbitControls,
+  Float,
+  PerspectiveCamera,
+  Environment,
+  ContactShadows,
+  MeshDistortMaterial,
+  MeshWobbleMaterial
+} from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  BarChart3,
+  Settings,
+  ExternalLink,
+  Briefcase,
+  FileText,
+  User,
+  Cpu,
+  Zap,
+  Shield
+} from 'lucide-react';
+import * as THREE from 'three';
+import CommandPalette from '@/components/CommandPalette';
+
+// --- TYPES ---
+type CharacterMode = 'hacker' | 'builder' | 'executive';
+
+interface Project {
+  title: string;
+  description: string;
+  tags: string[];
+  link: string;
+}
+
+interface Thought {
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+}
+
+// --- DATA ---
+const PROJECTS: Project[] = [
+  { title: "Governed Agent Framework", description: "Production-grade AI agent orchestration for Fortune 100 scale.", tags: ["Python", "LangGraph", "Enterprise"], link: "#" },
+  { title: "Demand Forecasting AI", description: "Predictive labor and routing models for rapid geographic expansion.", tags: ["PyTorch", "AWS", "Ops"], link: "#" },
+  { title: "Merchant Productivity Suite", description: "AI-enabled tooling resulting in $150M incremental GMV.", tags: ["Next.js", "LLMs", "UX"], link: "#" },
+  { title: "Supply Chain Visibility", description: "End-to-end traceability for U.S. transportation networks.", tags: ["Java", "BigQuery", "Logistics"], link: "#" },
+];
+
+const THOUGHTS: Thought[] = [
+  { title: "The Last Mile of AI", excerpt: "Moving from viral demos to governed, scalable agentic systems.", category: "Technical", date: "Sept 2026" },
+  { title: "Bridging the Production Gap", excerpt: "Why most LLM projects fail at the deployment stage.", category: "Strategy", date: "Aug 2026" },
+  { title: "The Operator's Mindset", excerpt: "Blending technical depth with executive strategy in the AI era.", category: "Mindset", date: "July 2026" },
+];
+
+// --- 3D COMPONENTS ---
+
+function SceneModel({ mode }: { mode: CharacterMode }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    const t = state.clock.getElapsedTime();
+    meshRef.current.rotation.x = Math.sin(t / 4) * 0.2;
+    meshRef.current.rotation.y = Math.cos(t / 3) * 0.2;
+  });
+
+  return (
+    <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
+      <mesh ref={meshRef} castShadow receiveShadow>
+        {mode === 'hacker' ? (
+          <>
+            <torusKnotGeometry args={[1, 0.3, 128, 32]} />
+            <MeshDistortMaterial
+              color="#3b82f6"
+              speed={2}
+              distort={0.4}
+              metalness={1}
+              roughness={0.1}
+              emissive="#1d4ed8"
+              emissiveIntensity={0.5}
+            />
+          </>
+        ) : mode === 'builder' ? (
+          <>
+            <boxGeometry args={[1.5, 1.5, 1.5]} />
+            <MeshWobbleMaterial
+              color="#10b981"
+              speed={1}
+              factor={0.6}
+              metalness={0.8}
+              roughness={0.2}
+              emissive="#065f46"
+              emissiveIntensity={0.2}
+            />
+          </>
+        ) : (
+          <>
+            <sphereGeometry args={[1.2, 64, 64]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              metalness={1}
+              roughness={0.05}
+              emissive="#ffffff"
+              emissiveIntensity={0.2}
+            />
+          </>
+        )}
+      </mesh>
+    </Float>
+  );
+}
+
+function SceneCanvas({ mode }: { mode: CharacterMode }) {
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        minPolarAngle={Math.PI / 3}
+        maxPolarAngle={Math.PI / 2}
+      />
+
+      <ambientLight intensity={0.2} />
+      <spotLight
+        position={[10, 10, 10]}
+        angle={0.15}
+        penumbra={1}
+        intensity={2}
+        castShadow
+      />
+      <pointLight position={[-10, -10, -10]} color={mode === 'hacker' ? "#3b82f6" : mode === 'builder' ? "#10b981" : "#ffffff"} intensity={1} />
+
+      <Suspense fallback={null}>
+        <SceneModel mode={mode} />
+        <ContactShadows
+          position={[0, -2, 0]}
+          opacity={0.6}
+          scale={10}
+          blur={2}
+          far={4.5}
+        />
+        <Environment preset="city" />
+      </Suspense>
+
+      <EffectComposer>
+        <Bloom luminanceThreshold={1} intensity={1.5} levels={9} mipmapBlur />
+        <Noise opacity={0.05} />
+        <Vignette offset={0.1} darkness={1.1} />
+      </EffectComposer>
+    </>
+  );
+}
+
+// --- UI COMPONENTS ---
+
+const Header = ({ mode, setMode }: { mode: CharacterMode, setMode: (m: CharacterMode) => void }) => {
+  const modes: { id: CharacterMode; label: string }[] = [
+    { id: 'hacker', label: 'Hacker' },
+    { id: 'builder', label: 'Builder' },
+    { id: 'executive', label: 'Executive' },
+  ];
+
+  return (
+    <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-md bg-[#0b0f17]/50 border-b border-slate-800/40">
+      <div className="text-sm font-bold tracking-tighter text-slate-100 uppercase flex items-center gap-2">
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+        Desk of Rahul
+      </div>
+      <div className="flex gap-4 items-center">
+        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
+          <BarChart3 size={14} /> RahulMetrics
+        </button>
+        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
+          <Settings size={14} /> Settings
+        </button>
+        <div className="h-6 w-[1px] bg-slate-800 mx-2" />
+        <div className="flex bg-slate-900/80 border border-slate-800 p-1 rounded-lg">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`px-3 py-1 text-[10px] uppercase font-black rounded-md transition-all ${
+                mode === m.id ? 'bg-white text-black' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default function Home() {
+  const [characterMode, setCharacterMode] = useState<CharacterMode>('hacker');
+
+  const modeConfigs = {
+    hacker: {
+      title: 'Agentic Architecture',
+      subtitle: 'OPERATOR_MODE',
+      color: 'text-blue-400',
+      accent: 'bg-blue-500',
+      icon: <Cpu size={14} />,
+    },
+    builder: {
+      title: 'Production Implementation',
+      subtitle: 'BUILDER_MODE',
+      color: 'text-emerald-400',
+      accent: 'bg-emerald-500',
+      icon: <Zap size={14} />,
+    },
+    executive: {
+      title: 'Strategic Leadership',
+      subtitle: 'EXECUTIVE_MODE',
+      color: 'text-white',
+      accent: 'bg-white',
+      icon: <Shield size={14} />,
+    },
+  };
+
+  const currentConfig = modeConfigs[characterMode];
+
+  return (
+    <div className="min-h-screen bg-[#0b0f17] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
+      <Head>
+        <title>Desk of Rahul | AI Operator</title>
+      </Head>
+
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/60 via-[#0b0f17] to-[#0b0f17]" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
+      </div>
+
+      <Header mode={characterMode} setMode={setCharacterMode} />
+
+      <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32">
+        <section className="h-[600px] rounded-3xl border border-slate-800/80 bg-slate-900/30 overflow-hidden relative flex items-center justify-center group">
+          <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+            <SceneCanvas mode={characterMode} />
+          </Canvas>
+          
+          <div className="absolute bottom-10 left-10">
+             <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+               <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.accent} animate-pulse`} />
+               System State: {currentConfig.subtitle}
+             </div>
+             <div className={`text-4xl font-bold uppercase tracking-tighter transition-colors duration-500 ${currentConfig.color}`}>
+               {currentConfig.title}
+             </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <section className="lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <User size={14} /> About
+            </div>
+            <div className="p-8 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
+              <h3 className="text-xl font-bold text-slate-100 mb-4">The AI Operator</h3>
+              <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                Bridging the gap between raw technical power and executive strategy. I architect governed, scalable agentic systems for the Fortune 100, focusing on the last mile of AI deployment.
+              </p>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
+                  <span>Location</span>
+                  <span className="text-slate-300">New York, NY</span>
+                </div>
+                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
+                  <span>Focus</span>
+                  <span className="text-slate-300">Enterprise AI / Scale</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <FileText size={14} /> Thoughts
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {THOUGHTS.map((thought, i) => (
+                <div 
+                  key={i} 
+                  className="p-6 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:bg-slate-900/50 transition-all group cursor-pointer"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] uppercase font-black text-emerald-500 tracking-tighter">{thought.category}</span>
+                    <span className="text-[10px] mono text-slate-600">{thought.date}</span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">{thought.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{thought.excerpt}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <Briefcase size={14} /> Projects
+            </div>
+            <div className="space-y-4">
+              {PROJECTS.map((project, i) => (
+                <div 
+                  key={i} 
+                  className="p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-600 transition-all group cursor-pointer"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-sm font-bold text-slate-100">{project.title}</h4>
+                    <ExternalLink size={14} className="text-slate-600 group-hover:text-white transition-colors" />
+                  </div>
+                  <p className="text-xs text-slate-400 mb-4">{project.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="text-[9px] uppercase font-bold px-2 py-0.5 bg-slate-800 text-slate-400 rounded">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer className="py-12 px-6 border-t border-slate-800/40 text-center">
+        <div className="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">
+          © 2026 Desk of Rahul // System Operator OS
+        </div>
+      </footer>
+
+      <CommandPalette />
+    </div>
+  );
+}
