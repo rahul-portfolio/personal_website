@@ -9,8 +9,8 @@ import {
   PerspectiveCamera,
   Environment,
   ContactShadows,
-  Box,
-  Cylinder
+  MeshDistortMaterial,
+  MeshWobbleMaterial
 } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,13 +20,17 @@ import {
   ExternalLink,
   Briefcase,
   FileText,
-  User
+  User,
+  Cpu,
+  Zap,
+  Shield
 } from 'lucide-react';
 import * as THREE from 'three';
 import CommandPalette from '@/components/CommandPalette';
+import { useSceneStore } from '@/store/useSceneStore';
 
 // --- TYPES ---
-type CharacterMode = 'agentic' | 'executive';
+type CharacterMode = 'hacker' | 'builder' | 'executive';
 
 interface Project {
   title: string;
@@ -58,27 +62,44 @@ const THOUGHTS: Thought[] = [
 
 // --- 3D COMPONENTS ---
 
-function SceneModel({ mode }: { mode: CharacterMode }) {
+function SceneModel() {
+  const mode = useSceneStore((state) => state.mode);
+  const rotationSpeed = useSceneStore((state) => state.rotationSpeed);
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (!meshRef.current) return;
     const t = state.clock.getElapsedTime();
-    meshRef.current.rotation.x = Math.sin(t / 4) * 0.2;
-    meshRef.current.rotation.y = Math.cos(t / 3) * 0.2;
+    meshRef.current.rotation.x = Math.sin(t * rotationSpeed / 4) * 0.2;
+    meshRef.current.rotation.y = Math.cos(t * rotationSpeed / 3) * 0.2;
   });
 
   return (
     <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
       <mesh ref={meshRef} castShadow receiveShadow>
-        {mode === 'agentic' ? (
+        {mode === 'hacker' ? (
           <>
             <torusKnotGeometry args={[1, 0.3, 128, 32]} />
-            <meshStandardMaterial
+            <MeshDistortMaterial
               color="#3b82f6"
+              speed={2}
+              distort={0.4}
               metalness={1}
               roughness={0.1}
               emissive="#1d4ed8"
+              emissiveIntensity={0.5}
+            />
+          </>
+        ) : mode === 'builder' ? (
+          <>
+            <boxGeometry args={[1.5, 1.5, 1.5]} />
+            <MeshWobbleMaterial
+              color="#10b981"
+              speed={1}
+              factor={0.6}
+              metalness={0.8}
+              roughness={0.2}
+              emissive="#065f46"
               emissiveIntensity={0.2}
             />
           </>
@@ -90,7 +111,7 @@ function SceneModel({ mode }: { mode: CharacterMode }) {
               metalness={1}
               roughness={0.05}
               emissive="#ffffff"
-              emissiveIntensity={0.1}
+              emissiveIntensity={0.2}
             />
           </>
         )}
@@ -99,7 +120,10 @@ function SceneModel({ mode }: { mode: CharacterMode }) {
   );
 }
 
-function SceneCanvas({ mode }: { mode: CharacterMode }) {
+function SceneCanvas() {
+  const mode = useSceneStore((state) => state.mode);
+  const bloomIntensity = useSceneStore((state) => state.bloomIntensity);
+
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
@@ -118,10 +142,10 @@ function SceneCanvas({ mode }: { mode: CharacterMode }) {
         intensity={2}
         castShadow
       />
-      <pointLight position={[-10, -10, -10]} color="#3b82f6" intensity={1} />
+      <pointLight position={[-10, -10, -10]} color={mode === 'hacker' ? "#3b82f6" : mode === 'builder' ? "#10b981" : "#ffffff"} intensity={1} />
 
       <Suspense fallback={null}>
-        <SceneModel mode={mode} />
+        <SceneModel />
         <ContactShadows
           position={[0, -2, 0]}
           opacity={0.6}
@@ -133,7 +157,7 @@ function SceneCanvas({ mode }: { mode: CharacterMode }) {
       </Suspense>
 
       <EffectComposer>
-        <Bloom luminanceThreshold={1} intensity={1.5} levels={9} mipmapBlur />
+        <Bloom luminanceThreshold={1} intensity={bloomIntensity} levels={9} mipmapBlur />
         <Noise opacity={0.05} />
         <Vignette offset={0.1} darkness={1.1} />
       </EffectComposer>
@@ -143,29 +167,74 @@ function SceneCanvas({ mode }: { mode: CharacterMode }) {
 
 // --- UI COMPONENTS ---
 
-const Header = ({ mode, setMode }: { mode: CharacterMode, setMode: (m: CharacterMode) => void }) => (
-  <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-md bg-[#0b0f17]/50 border-b border-slate-800/40">
-    <div className="text-sm font-bold tracking-tighter text-slate-100 uppercase">Desk of Rahul</div>
-    <div className="flex gap-4 items-center">
-      <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
-        <BarChart3 size={14} /> RahulMetrics
-      </button>
-      <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
-        <Settings size={14} /> Settings
-      </button>
-      <div className="h-6 w-[1px] bg-slate-800 mx-2" />
-      <button
-        onClick={() => setMode(mode === 'agentic' ? 'executive' : 'agentic')}
-        className="px-4 py-2 bg-white text-black text-[10px] uppercase font-black rounded-lg hover:bg-slate-200 transition-colors"
-      >
-        Mode: {mode === 'agentic' ? 'Agentic' : 'Executive'}
-      </button>
-    </div>
-  </nav>
-);
+const Header = () => {
+  const { mode, setMode } = useSceneStore();
+  const modes: { id: CharacterMode; label: string }[] = [
+    { id: 'hacker', label: 'Hacker' },
+    { id: 'builder', label: 'Builder' },
+    { id: 'executive', label: 'Executive' },
+  ];
+
+  return (
+    <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-md bg-[#0b0f17]/50 border-b border-slate-800/40">
+      <div className="text-sm font-bold tracking-tighter text-slate-100 uppercase flex items-center gap-2">
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+        Desk of Rahul
+      </div>
+      <div className="flex gap-4 items-center">
+        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
+          <BarChart3 size={14} /> RahulMetrics
+        </button>
+        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
+          <Settings size={14} /> Settings
+        </button>
+        <div className="h-6 w-[1px] bg-slate-800 mx-2" />
+        <div className="flex bg-slate-900/80 border border-slate-800 p-1 rounded-lg">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`px-3 py-1 text-[10px] uppercase font-black rounded-md transition-all ${
+                mode === m.id ? 'bg-white text-black' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 export default function Home() {
-  const [characterMode, setCharacterMode] = useState<CharacterMode>('agentic');
+  const mode = useSceneStore((state) => state.mode);
+
+  const modeConfigs = {
+    hacker: {
+      title: 'Agentic Architecture',
+      subtitle: 'OPERATOR_MODE',
+      color: 'text-blue-400',
+      accent: 'bg-blue-500',
+      icon: <Cpu size={14} />,
+    },
+    builder: {
+      title: 'Production Implementation',
+      subtitle: 'BUILDER_MODE',
+      color: 'text-emerald-400',
+      accent: 'bg-emerald-500',
+      icon: <Zap size={14} />,
+    },
+    executive: {
+      title: 'Strategic Leadership',
+      subtitle: 'EXECUTIVE_MODE',
+      color: 'text-white',
+      accent: 'bg-white',
+      icon: <Shield size={14} />,
+    },
+  };
+
+  const currentConfig = modeConfigs[mode];
 
   return (
     <div className="min-h-screen bg-[#0b0f17] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
@@ -175,22 +244,24 @@ export default function Home() {
 
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/60 via-[#0b0f17] to-[#0b0f17]" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
       </div>
 
-      <Header mode={characterMode} setMode={setCharacterMode} />
+      <Header />
 
       <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32">
         <section className="h-[600px] rounded-3xl border border-slate-800/80 bg-slate-900/30 overflow-hidden relative flex items-center justify-center group">
           <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
-            <SceneCanvas mode={characterMode} />
+            <SceneCanvas />
           </Canvas>
           
           <div className="absolute bottom-10 left-10">
-             <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">
-               System State: {characterMode === 'agentic' ? 'OPERATOR_MODE' : 'EXECUTIVE_MODE'}
+             <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+               <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.accent} animate-pulse`} />
+               System State: {currentConfig.subtitle}
              </div>
-             <div className="text-2xl font-bold text-white uppercase tracking-tighter">
-               {characterMode === 'agentic' ? 'Agentic Architecture' : 'Strategic Leadership'}
+             <div className={`text-4xl font-bold uppercase tracking-tighter transition-colors duration-500 ${currentConfig.color}`}>
+               {currentConfig.title}
              </div>
           </div>
         </section>
@@ -235,7 +306,8 @@ export default function Home() {
                   <h3 className="text-base font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">{thought.title}</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">{thought.excerpt}</p>
                 </div>
-              ))}\n            </div>
+              ))}
+            </div>
           </section>
 
           <section className="lg:col-span-4 space-y-6">
@@ -256,9 +328,11 @@ export default function Home() {
                   <div className="flex flex-wrap gap-2">
                     {project.tags.map(tag => (
                       <span key={tag} className="text-[9px] uppercase font-bold px-2 py-0.5 bg-slate-800 text-slate-400 rounded">{tag}</span>
-                    ))}\n                  </div>
+                    ))}
+                  </div>
                 </div>
-              ))}\n            </div>
+              ))}
+            </div>
           </section>
         </div>
       </main>

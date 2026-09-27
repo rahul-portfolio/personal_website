@@ -2,13 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Command, X, Search, Terminal as TerminalIcon, User, Briefcase, ExternalLink } from 'lucide-react';
+import { Command, X, Search, Terminal as TerminalIcon, User, Briefcase, ExternalLink, Cpu, Zap, Shield } from 'lucide-react';
+import { useSceneStore } from '@/store/useSceneStore';
 
 const COMMANDS = [
   { cmd: '/evidence', label: 'View Evidence', action: () => window.location.href = '#evidence' },
   { cmd: '/contact', label: 'Send Message', action: () => window.location.href = 'mailto:rmahindra687@gmail.com' },
   { cmd: '/linkedin', label: 'Open LinkedIn', action: () => window.open('https://www.linkedin.com/in/rahulmahindra/', '_blank') },
-  { cmd: '/mode', label: 'Switch Builder/Exec', action: () => alert('Use the UI toggle for mode switching') },
+  { cmd: '/mode:hacker', label: 'Switch to Hacker Mode', action: () => useSceneStore.getState().setMode('hacker') },
+  { cmd: '/mode:builder', label: 'Switch to Builder Mode', action: () => useSceneStore.getState().setMode('builder') },
+  { cmd: '/mode:exec', label: 'Switch to Executive Mode', action: () => useSceneStore.getState().setMode('executive') },
+  { cmd: '/speed:fast', label: 'Set Rotation Fast', action: () => useSceneStore.getState().setRotationSpeed(3) },
+  { cmd: '/speed:slow', label: 'Set Rotation Slow', action: () => useSceneStore.getState().setRotationSpeed(0.5) },
+  { cmd: '/bloom:high', label: 'Intense Bloom', action: () => useSceneStore.getState().setBloomIntensity(3) },
+  { cmd: '/bloom:low', label: 'Subtle Bloom', action: () => useSceneStore.getState().setBloomIntensity(0.5) },
   { cmd: '/about', label: 'Operator Thesis', action: () => alert('Bridging the Production Gap: Moving from demos to governed scale.') },
 ];
 
@@ -63,7 +70,7 @@ export default function CommandPalette() {
                 <input 
                   autoFocus
                   className="bg-transparent border-none outline-none text-white w-full mono text-sm"
-                  placeholder="Enter command... (e.g. /evidence)"
+                  placeholder="Enter command... (e.g. /mode:hacker)"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
