@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-type CharacterMode = 'hacker' | 'builder' | 'executive';
+type CharacterMode = 'hacker' | 'builder' | 'operator';
 
 interface SceneState {
   mode: CharacterMode;

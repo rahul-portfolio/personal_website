@@ -9,8 +9,7 @@ import {
   PerspectiveCamera,
   Environment,
   ContactShadows,
-  MeshDistortMaterial,
-  MeshWobbleMaterial
+  useGLTF,
 } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +29,7 @@ import CommandPalette from '@/components/CommandPalette';
 import { useSceneStore } from '@/store/useSceneStore';
 
 // --- TYPES ---
-type CharacterMode = 'hacker' | 'builder' | 'executive';
+type CharacterMode = 'hacker' | 'builder' | 'operator';
 
 interface Project {
   title: string;
@@ -65,58 +64,51 @@ const THOUGHTS: Thought[] = [
 function SceneModel() {
   const mode = useSceneStore((state) => state.mode);
   const rotationSpeed = useSceneStore((state) => state.rotationSpeed);
-  const meshRef = useRef<THREE.Mesh>(null);
+  
+  const { scene: characterScene } = useGLTF('/models/character.glb');
+  const { scene: deskScene } = useGLTF('/models/desk.glb');
+
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Mode-based color palette
+  const themeColors = {
+    hacker: { emissive: '#3b82f6', intensity: 1.5 },
+    builder: { emissive: '#10b981', intensity: 1.0 },
+    operator: { emissive: '#ffffff', intensity: 0.5 },
+  };
+
+  const currentTheme = themeColors[mode];
 
   useFrame((state) => {
-    if (!meshRef.current) return;
+    if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
-    meshRef.current.rotation.x = Math.sin(t * rotationSpeed / 4) * 0.2;
-    meshRef.current.rotation.y = Math.cos(t * rotationSpeed / 3) * 0.2;
+    groupRef.current.rotation.y = Math.sin(t * rotationSpeed * 0.1) * 0.1;
   });
 
+  // Update materials based on mode
+  React.useEffect(() => {
+    [characterScene, deskScene].forEach((scene) => {
+      scene.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const mesh = obj as THREE.Mesh;
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+          
+          if (mat) {
+            mat.metalness = 0.8;
+            mat.roughness = 0.2;
+            mat.emissive = new THREE.Color(currentTheme.emissive);
+            mat.emissiveIntensity = currentTheme.intensity;
+          }
+        }
+      });
+    });
+  }, [mode, characterScene, deskScene, currentTheme]);
+
   return (
-    <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
-      <mesh ref={meshRef} castShadow receiveShadow>
-        {mode === 'hacker' ? (
-          <>
-            <torusKnotGeometry args={[1, 0.3, 128, 32]} />
-            <MeshDistortMaterial
-              color="#3b82f6"
-              speed={2}
-              distort={0.4}
-              metalness={1}
-              roughness={0.1}
-              emissive="#1d4ed8"
-              emissiveIntensity={0.5}
-            />
-          </>
-        ) : mode === 'builder' ? (
-          <>
-            <boxGeometry args={[1.5, 1.5, 1.5]} />
-            <MeshWobbleMaterial
-              color="#10b981"
-              speed={1}
-              factor={0.6}
-              metalness={0.8}
-              roughness={0.2}
-              emissive="#065f46"
-              emissiveIntensity={0.2}
-            />
-          </>
-        ) : (
-          <>
-            <sphereGeometry args={[1.2, 64, 64]} />
-            <meshStandardMaterial
-              color="#ffffff"
-              metalness={1}
-              roughness={0.05}
-              emissive="#ffffff"
-              emissiveIntensity={0.2}
-            />
-          </>
-        )}
-      </mesh>
-    </Float>
+    <group ref={groupRef}>
+      <primitive object={characterScene} position={[0, 0, 0]} scale={1} />
+      <primitive object={deskScene} position={[0, 0, 0]} scale={1} />
+    </group>
   );
 }
 
@@ -172,7 +164,7 @@ const Header = () => {
   const modes: { id: CharacterMode; label: string }[] = [
     { id: 'hacker', label: 'Hacker' },
     { id: 'builder', label: 'Builder' },
-    { id: 'executive', label: 'Executive' },
+    { id: 'operator', label: 'Operator' },
   ];
 
   return (
@@ -213,21 +205,21 @@ export default function Home() {
   const modeConfigs = {
     hacker: {
       title: 'Agentic Architecture',
-      subtitle: 'OPERATOR_MODE',
+      subtitle: 'DEEP_TECH_MODE',
       color: 'text-blue-400',
       accent: 'bg-blue-500',
       icon: <Cpu size={14} />,
     },
     builder: {
       title: 'Production Implementation',
-      subtitle: 'BUILDER_MODE',
+      subtitle: 'PRODUCTION_MODE',
       color: 'text-emerald-400',
       accent: 'bg-emerald-500',
       icon: <Zap size={14} />,
     },
-    executive: {
-      title: 'Strategic Leadership',
-      subtitle: 'EXECUTIVE_MODE',
+    operator: {
+      title: 'Operational Command',
+      subtitle: 'COMMAND_MODE',
       color: 'text-white',
       accent: 'bg-white',
       icon: <Shield size={14} />,

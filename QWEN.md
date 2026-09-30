@@ -14,11 +14,11 @@ The core objective of this site is to demonstrate the "Enterprise AI Operator" c
 - **Visuals**: Business casual attire for the 3D representation, surrounded by "Builder" artifacts (monitors, hardware, technical docs).
 - **Content**: Focused on the "Builder" section of the professional evidence.
 
-### Profile 3: The Business Executive
-- **Aesthetic**: High-end, polished, "Executive" version of the brutalist style.
-- **Setting**: Keynote/Stage environment.
-- **Visuals**: The person is positioned in front of a professional microphone on a stage, wearing executive attire.
-- **Content**: Focused on the "Executive" section of the professional evidence.
+### Profile 3: The Operator
+|- **Aesthetic**: High-end, polished, "Operational" version of the brutalist style.
+|- **Setting**: Huddle meeting room / Command center.
+|- **Visuals**: Business attire, positioned with an operator and live metrics dashboard in the background.
+|- **Content**: Focused on the "Operator" section of the professional evidence.
 
 ---
 
