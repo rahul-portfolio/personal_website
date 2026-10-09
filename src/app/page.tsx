@@ -185,7 +185,7 @@ const Header = () => {
             </button>
           ))}
         </div>
-      </div}
+      </div>
     </nav>
   );
 };
@@ -226,7 +226,7 @@ export default function Home() {
                {currentConfig.title}
              </div>
           </div>
-        </section
+        </section>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <section className="lg:col-span-4 space-y-6">
