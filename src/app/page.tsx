@@ -61,53 +61,80 @@ const THOUGHTS: Thought[] = [
 
 // --- 3D COMPONENTS ---
 
+function ModernistDesk() {
+  return (
+    <group position={[0, -0.5, 0]}>
+      {/* Tabletop - Deep Walnut */}
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[2, 0.1, 1]} />
+        <meshStandardMaterial 
+          color="#3d2b1f" 
+          roughness={0.4} 
+          metalness={0} 
+        />
+      </mesh>
+
+      {/* Leather Inlay - Cognac */}
+      <mesh position={[0, 0.051, 0]} castShadow>
+        <boxGeometry args={[1.6, 0.01, 0.7]} />
+        <meshStandardMaterial 
+          color="#8b4513" 
+          roughness={0.7} 
+          metalness={0} 
+        />
+      </mesh>
+
+      {/* Legs - Satin Brass - using standard box for max stability */}
+      {[[-0.9, -0.4, -0.4], [0.9, -0.4, -0.4], [-0.9, -0.4, 0.4], [0.9, -0.4, 0.4]].map((pos, i) => (
+        <mesh key={i} position={pos as any} castShadow>
+          <boxGeometry args={[0.05, 0.8, 0.05]} />
+          <meshStandardMaterial 
+            color="#b5a642" 
+            roughness={0.2} 
+            metalness={1} 
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function SceneModel() {
   const mode = useSceneStore((state) => state.mode);
   const rotationSpeed = useSceneStore((state) => state.rotationSpeed);
   
-  const { scene: characterScene } = useGLTF('/models/character.glb');
-  const { scene: deskScene } = useGLTF('/models/desk.glb');
-
   const groupRef = useRef<THREE.Group>(null);
 
-  // Mode-based color palette
   const themeColors = {
     hacker: { emissive: '#3b82f6', intensity: 1.5 },
     builder: { emissive: '#10b981', intensity: 1.0 },
     operator: { emissive: '#ffffff', intensity: 0.5 },
   };
 
-  const currentTheme = themeColors[mode];
+  const currentTheme = themeColors[mode] || themeColors.operator;
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
-    groupRef.current.rotation.y = Math.sin(t * rotationSpeed * 0.1) * 0.1;
+    groupRef.current.rotation.y = Math.sin(t * (rotationSpeed || 1) * 0.1) * 0.1;
   });
-
-  // Update materials based on mode
-  React.useEffect(() => {
-    [characterScene, deskScene].forEach((scene) => {
-      scene.traverse((obj) => {
-        if ((obj as THREE.Mesh).isMesh) {
-          const mesh = obj as THREE.Mesh;
-          const mat = mesh.material as THREE.MeshStandardMaterial;
-          
-          if (mat) {
-            mat.metalness = 0.8;
-            mat.roughness = 0.2;
-            mat.emissive = new THREE.Color(currentTheme.emissive);
-            mat.emissiveIntensity = currentTheme.intensity;
-          }
-        }
-      });
-    });
-  }, [mode, characterScene, deskScene, currentTheme]);
 
   return (
     <group ref={groupRef}>
-      <primitive object={characterScene} position={[0, 0, 0]} scale={1} />
-      <primitive object={deskScene} position={[0, 0, 0]} scale={1} />
+      {/* Refined Placeholder Character - Simple Box for stability */}
+      <group position={[0, 0.5, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.4, 1, 0.4]} />
+          <meshStandardMaterial 
+            metalness={0.5} 
+            roughness={0.3} 
+            emissive={new THREE.Color(currentTheme.emissive)} 
+            emissiveIntensity={currentTheme.intensity} 
+          />
+        </mesh>
+      </group>
+
+      <ModernistDesk />
     </group>
   );
 }
@@ -148,11 +175,11 @@ function SceneCanvas() {
         <Environment preset="city" />
       </Suspense>
 
-      <EffectComposer>
+      {/* <EffectComposer>
         <Bloom luminanceThreshold={1} intensity={bloomIntensity} levels={9} mipmapBlur />
         <Noise opacity={0.05} />
         <Vignette offset={0.1} darkness={1.1} />
-      </EffectComposer>
+      </EffectComposer> */}
     </>
   );
 }
