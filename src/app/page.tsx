@@ -1,3 +1,4 @@
+// Version: Cyber-Luxe-v1.0
 "use client";
 
 import React, { useState, useRef, Suspense } from 'react';
