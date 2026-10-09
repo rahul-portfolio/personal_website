@@ -1,16 +1,15 @@
-// Version: Cyber-Luxe-v1.0
 "use client";
 
-import React, { useState, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Head from 'next/head';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
-  Float,
   PerspectiveCamera,
   Environment,
+  Float,
+  MeshPhysicalMaterial,
   ContactShadows,
-  useGLTF,
 } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +28,6 @@ import * as THREE from 'three';
 import CommandPalette from '@/components/CommandPalette';
 import { useSceneStore } from '@/store/useSceneStore';
 
-// --- TYPES ---
 type CharacterMode = 'hacker' | 'builder' | 'operator';
 
 interface Project {
@@ -46,7 +44,6 @@ interface Thought {
   date: string;
 }
 
-// --- DATA ---
 const PROJECTS: Project[] = [
   { title: "Governed Agent Framework", description: "Production-grade AI agent orchestration for Fortune 100 scale.", tags: ["Python", "LangGraph", "Enterprise"], link: "#" },
   { title: "Demand Forecasting AI", description: "Predictive labor and routing models for rapid geographic expansion.", tags: ["PyTorch", "AWS", "Ops"], link: "#" },
@@ -60,132 +57,105 @@ const THOUGHTS: Thought[] = [
   { title: "The Operator's Mindset", excerpt: "Blending technical depth with executive strategy in the AI era.", category: "Mindset", date: "July 2026" },
 ];
 
-// --- 3D COMPONENTS ---
+function HolographicASCII() {
+  const mode = useSceneStore((state) => state.mode);
+  const [ascii, setAscii] = useState('');
+  const [loading, setLoading] = useState(true);
 
-function ModernistDesk() {
+  const asciiMap = {
+    hacker: 'https://ascii.rest/typewriter/',
+    builder: 'https://ascii.rest/typewriter/',
+    operator: 'https://ascii.rest/earthrise/',
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(asciiMap[mode])
+      .then(res => res.text())
+      .then(text => {
+        setAscii(text);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [mode]);
+
+  const themeColors = {
+    hacker: 'text-blue-500',
+    builder: 'text-emerald-500',
+    operator: 'text-white',
+  };
+
   return (
-    <group position={[0, -0.5, 0]}>
-      {/* Tabletop - Deep Walnut */}
-      <mesh position={[0, 0, 0]} castShadow>
-        <boxGeometry args={[2, 0.1, 1]} />
-        <meshStandardMaterial 
-          color="#3d2b1f" 
-          roughness={0.4} 
-          metalness={0} 
-        />
-      </mesh>
-
-      {/* Leather Inlay - Cognac */}
-      <mesh position={[0, 0.051, 0]} castShadow>
-        <boxGeometry args={[1.6, 0.01, 0.7]} />
-        <meshStandardMaterial 
-          color="#8b4513" 
-          roughness={0.7} 
-          metalness={0} 
-        />
-      </mesh>
-
-      {/* Legs - Satin Brass - using standard box for max stability */}
-      {[[-0.9, -0.4, -0.4], [0.9, -0.4, -0.4], [-0.9, -0.4, 0.4], [0.9, -0.4, 0.4]].map((pos, i) => (
-        <mesh key={i} position={pos as any} castShadow>
-          <boxGeometry args={[0.05, 0.8, 0.05]} />
-          <meshStandardMaterial 
-            color="#b5a642" 
-            roughness={0.2} 
-            metalness={1} 
-          />
-        </mesh>
-      ))}
-    </group>
+    <div className={`absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10 transition-colors duration-1000 ${themeColors[mode]}`}>
+      <pre className={`font-mono text-[10px] leading-none whitespace-pre opacity-30 animate-pulse ${loading ? 'opacity-0' : 'opacity-30'}`} 
+           style={{ 
+             textShadow: `0 0 10px ${mode === 'hacker' ? '#3b82f6' : mode === 'builder' ? '#10b981' : '#ffffff'}`,
+             filter: 'blur(0.5px)'
+           }}>
+        {ascii}
+      </pre>
+    </div>
   );
 }
 
-function SceneModel() {
+function GlassArtifact() {
   const mode = useSceneStore((state) => state.mode);
-  const rotationSpeed = useSceneStore((state) => state.rotationSpeed);
   
-  const groupRef = useRef<THREE.Group>(null);
-
   const themeColors = {
-    hacker: { emissive: '#3b82f6', intensity: 1.5 },
-    builder: { emissive: '#10b981', intensity: 1.0 },
-    operator: { emissive: '#ffffff', intensity: 0.5 },
+    hacker: '#3b82f6',
+    builder: '#10b981',
+    operator: '#ffffff',
   };
 
-  const currentTheme = themeColors[mode] || themeColors.operator;
-
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    const t = state.clock.getElapsedTime();
-    groupRef.current.rotation.y = Math.sin(t * (rotationSpeed || 1) * 0.1) * 0.1;
-  });
+  const color = themeColors[mode] || themeColors.operator;
 
   return (
-    <group ref={groupRef}>
-      {/* Refined Placeholder Character - Simple Box for stability */}
-      <group position={[0, 0.5, 0]}>
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[0.4, 1, 0.4]} />
-          <meshStandardMaterial 
-            metalness={0.5} 
-            roughness={0.3} 
-            emissive={new THREE.Color(currentTheme.emissive)} 
-            emissiveIntensity={currentTheme.intensity} 
-          />
-        </mesh>
-      </group>
-
-      <ModernistDesk />
-    </group>
+    <Float speed={3} rotationIntensity={2} floatIntensity={1}>
+      <mesh position={[0, 0, 0]}>
+        <torusKnotGeometry args={[0.6, 0.2, 128, 32]} />
+        <MeshPhysicalMaterial 
+          color="#ffffff"
+          transmission={1} 
+          thickness={0.5} 
+          roughness={0.1} 
+          metalness={0}
+          ior={1.5}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
+          emissive={color}
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+    </Float>
   );
 }
 
 function SceneCanvas() {
-  const mode = useSceneStore((state) => state.mode);
   const bloomIntensity = useSceneStore((state) => state.bloomIntensity);
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        minPolarAngle={Math.PI / 3}
-        maxPolarAngle={Math.PI / 2}
-      />
-
+      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
+      <OrbitControls enableZoom={false} enablePan={false} />
+      
       <ambientLight intensity={0.2} />
-      <spotLight
-        position={[10, 10, 10]}
-        angle={0.15}
-        penumbra={1}
-        intensity={2}
-        castShadow
-      />
-      <pointLight position={[-10, -10, -10]} color={mode === 'hacker' ? "#3b82f6" : mode === 'builder' ? "#10b981" : "#ffffff"} intensity={1} />
-
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
+      <pointLight position={[-10, -10, -10]} intensity={1} color="#444" />
+      
       <Suspense fallback={null}>
-        <SceneModel />
-        <ContactShadows
-          position={[0, -2, 0]}
-          opacity={0.6}
-          scale={10}
-          blur={2}
-          far={4.5}
-        />
+        <GlassArtifact />
+        <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
         <Environment preset="city" />
       </Suspense>
 
-      {/* <EffectComposer>
+      <EffectComposer>
         <Bloom luminanceThreshold={1} intensity={bloomIntensity} levels={9} mipmapBlur />
-        <Noise opacity={0.05} />
-        <Vignette offset={0.1} darkness={1.1} />
-      </EffectComposer> */}
+        <Noise opacity={0.08} />
+        <Vignette offset={0.1} darkness={1.2} />
+      </EffectComposer>
     </>
   );
 }
-
-// --- UI COMPONENTS ---
 
 const Header = () => {
   const { mode, setMode } = useSceneStore();
@@ -196,20 +166,13 @@ const Header = () => {
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-md bg-[#0b0f17]/50 border-b border-slate-800/40">
+    <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-xl bg-black/20 border-b border-white/10">
       <div className="text-sm font-bold tracking-tighter text-slate-100 uppercase flex items-center gap-2">
-        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
         Desk of Rahul
       </div>
       <div className="flex gap-4 items-center">
-        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
-          <BarChart3 size={14} /> RahulMetrics
-        </button>
-        <button className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-900/50 border border-slate-800 rounded-lg flex items-center gap-2 text-[10px] uppercase font-bold">
-          <Settings size={14} /> Settings
-        </button>
-        <div className="h-6 w-[1px] bg-slate-800 mx-2" />
-        <div className="flex bg-slate-900/80 border border-slate-800 p-1 rounded-lg">
+        <div className="flex bg-black/40 border border-white/10 p-1 rounded-lg">
           {modes.map((m) => (
             <button
               key={m.id}
@@ -222,60 +185,39 @@ const Header = () => {
             </button>
           ))}
         </div>
-      </div>
+      </div}
     </nav>
   );
 };
 
 export default function Home() {
   const mode = useSceneStore((state) => state.mode);
-
   const modeConfigs = {
-    hacker: {
-      title: 'Agentic Architecture',
-      subtitle: 'DEEP_TECH_MODE',
-      color: 'text-blue-400',
-      accent: 'bg-blue-500',
-      icon: <Cpu size={14} />,
-    },
-    builder: {
-      title: 'Production Implementation',
-      subtitle: 'PRODUCTION_MODE',
-      color: 'text-emerald-400',
-      accent: 'bg-emerald-500',
-      icon: <Zap size={14} />,
-    },
-    operator: {
-      title: 'Operational Command',
-      subtitle: 'COMMAND_MODE',
-      color: 'text-white',
-      accent: 'bg-white',
-      icon: <Shield size={14} />,
-    },
+    hacker: { title: 'Agentic Architecture', subtitle: 'DEEP_TECH_MODE', color: 'text-blue-400', accent: 'bg-blue-500', bg: 'https://images.unsplash.com/photo-1550751827-4b3f4f24676a?auto=format&fit=crop&q=80&w=2070' },
+    builder: { title: 'Production Implementation', subtitle: 'PRODUCTION_MODE', color: 'text-emerald-400', accent: 'bg-emerald-500', bg: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069' },
+    operator: { title: 'Operational Command', subtitle: 'COMMAND_MODE', color: 'text-white', accent: 'bg-white', bg: 'https://images.unsplash.com/photo-1497366811353-6870744d0948?auto=format&fit=crop&q=80&w=2070' },
   };
-
   const currentConfig = modeConfigs[mode];
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
-      <Head>
-        <title>Desk of Rahul | AI Operator</title>
-      </Head>
-
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/60 via-[#0b0f17] to-[#0b0f17]" />
-        <div className="absolute inset-0 bg-grid opacity-20" />
-      </div>
-
+    <div className="min-h-screen bg-[#020205] text-slate-100 font-sans overflow-x-hidden">
+      <Head><title>Desk of Rahul | AI Operator</title></Head>
       <Header />
-
       <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32">
-        <section className="h-[600px] rounded-3xl border border-slate-800/80 bg-slate-900/30 overflow-hidden relative flex items-center justify-center group">
-          <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
-            <SceneCanvas />
-          </Canvas>
+        <section className="h-[600px] rounded-3xl border border-white/10 bg-black/40 overflow-hidden relative flex items-center justify-center group">
           
-          <div className="absolute bottom-10 left-10">
+          {/* CYBER-LUXE BACKGROUND LAYER */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-blue-900/10 via-black to-black" />
+          <HolographicASCII />
+          
+          {/* 3D OVERLAY LAYER */}
+          <div className="absolute inset-0 z-20">
+            <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+              <SceneCanvas />
+            </Canvas>
+          </div>
+
+          <div className="absolute bottom-10 left-10 z-30">
              <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
                <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.accent} animate-pulse`} />
                System State: {currentConfig.subtitle}
@@ -284,85 +226,42 @@ export default function Home() {
                {currentConfig.title}
              </div>
           </div>
-        </section>
-
+        </section
+        
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <section className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <User size={14} /> About
-            </div>
-            <div className="p-8 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
+            <div className="p-8 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
               <h3 className="text-xl font-bold text-slate-100 mb-4">The AI Operator</h3>
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                Bridging the gap between raw technical power and executive strategy. I architect governed, scalable agentic systems for the Fortune 100, focusing on the last mile of AI deployment.
-              </p>
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
-                  <span>Location</span>
-                  <span className="text-slate-300">New York, NY</span>
-                </div>
-                <div className="flex justify-between text-[10px] mono uppercase text-slate-500">
-                  <span>Focus</span>
-                  <span className="text-slate-300">Enterprise AI / Scale</span>
-                </div>
-              </div>
+              <p className="text-sm text-slate-400 leading-relaxed">Bridging the gap between raw technical power and executive strategy.</p>
             </div>
           </section>
-
           <section className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <FileText size={14} /> Thoughts
-            </div>
             <div className="grid grid-cols-1 gap-4">
               {THOUGHTS.map((thought, i) => (
-                <div 
-                  key={i} 
-                  className="p-6 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:bg-slate-900/50 transition-all group cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] uppercase font-black text-emerald-500 tracking-tighter">{thought.category}</span>
-                    <span className="text-[10px] mono text-slate-600">{thought.date}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-100 mb-2 group-hover:text-white transition-colors">{thought.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{thought.excerpt}</p>
+                <div key={i} className="p-6 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
+                  <h3 className="text-base font-bold text-slate-100">{thought.title}</h3>
+                  <p className="text-xs text-slate-400">{thought.excerpt}</p>
                 </div>
               ))}
             </div>
           </section>
-
           <section className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <Briefcase size={14} /> Projects
-            </div>
             <div className="space-y-4">
               {PROJECTS.map((project, i) => (
-                <div 
-                  key={i} 
-                  className="p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-600 transition-all group cursor-pointer"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-sm font-bold text-slate-100">{project.title}</h4>
-                    <ExternalLink size={14} className="text-slate-600 group-hover:text-white transition-colors" />
-                  </div>
-                  <p className="text-xs text-slate-400 mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tags.map(tag => (
-                      <span key={tag} className="text-[9px] uppercase font-bold px-2 py-0.5 bg-slate-800 text-slate-400 rounded">{tag}</span>
-                    ))}
-                  </div>
+                <div key={i} className="p-5 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
+                  <h4 className="text-sm font-bold text-slate-100">{project.title}</h4>
+                  <p className="text-xs text-slate-400">{project.description}</p>
                 </div>
               ))}
             </div>
           </section>
         </div>
       </main>
-
-      <footer className="py-12 px-6 border-t border-slate-800/40 text-center">
+      <footer className="py-12 px-6 border-t border-white/10 text-center">
         <div className="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">
           © 2026 Desk of Rahul // System Operator OS
         </div>
       </footer>
-
       <CommandPalette />
     </div>
   );
