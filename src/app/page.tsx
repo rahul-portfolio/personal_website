@@ -8,7 +8,6 @@ import {
   PerspectiveCamera,
   Environment,
   Float,
-  MeshPhysicalMaterial,
   ContactShadows,
 } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
@@ -113,7 +112,7 @@ function GlassArtifact() {
     <Float speed={3} rotationIntensity={2} floatIntensity={1}>
       <mesh position={[0, 0, 0]}>
         <torusKnotGeometry args={[0.6, 0.2, 128, 32]} />
-        <MeshPhysicalMaterial 
+        <meshPhysicalMaterial 
           color="#ffffff"
           transmission={1} 
           thickness={0.5} 
