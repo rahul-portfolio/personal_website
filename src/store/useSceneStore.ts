@@ -13,4 +13,11 @@ interface SceneState {
   setBloomIntensity: (intensity: number) => void;
 }
 
-export const useSceneStore = create<SceneState>((set) => ({\n  mode: 'builder',\n  rotationSpeed: 1,\n  bloomIntensity: 1.5,\n  setMode: (mode) => set({ mode }),\n  setRotationSpeed: (rotationSpeed) => set({ rotationSpeed }),\n  setBloomIntensity: (bloomIntensity) => set({ bloomIntensity }),\n}));
+export const useSceneStore = create<SceneState>((set) => ({
+  mode: 'builder',
+  rotationSpeed: 1,
+  bloomIntensity: 1.5,
+  setMode: (mode) => set({ mode }),
+  setRotationSpeed: (rotationSpeed) => set({ rotationSpeed }),
+  setBloomIntensity: (bloomIntensity) => set({ bloomIntensity }),
+}));
