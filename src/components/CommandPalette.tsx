@@ -69,7 +69,7 @@ export default function CommandPalette() {
                 <input 
                   autoFocus
                   className="bg-transparent border-none outline-none text-white w-full mono text-sm"
-                  placeholder="Enter command... (e.g. /mode:hacker)"
+                  placeholder="Enter command... (e.g. /mode:builder)"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
