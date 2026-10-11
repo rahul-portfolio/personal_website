@@ -142,7 +142,7 @@ function SceneCanvas() {
       <Suspense fallback={null}>
         {mode === 'operator' ? <MirrorBall /> : <GlassArtifact />}
         <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
-        <Environment preset=\"city\" />
+        <Environment preset="city" />
       </Suspense>
 
       <EffectComposer>
@@ -201,7 +201,29 @@ const Header = () => {
   ];
 
   return (
-    <nav className=\"fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-xl bg-black/20 border-b border-white/10\">\n      <div className=\"text-sm font-bold tracking-tighter text-slate-100 uppercase flex items-center gap-2\">\n        <div className=\"w-2 h-2 bg-white rounded-full animate-pulse\" />\n        Desk of Rahul\n      </div\n      <div className=\"flex gap-4 items-center\">\n        <div className=\"flex bg-black/40 border border-white/10 p-1 rounded-lg\">\n          {modes.map((m) => (\n            <button\n              key={m.id}\n              onClick={() => setMode(m.id)}\n              className={`px-3 py-1 text-[10px] uppercase font-black rounded-md transition-all ${\n                mode === m.id ? 'bg-white text-black' : 'text-slate-500 hover:text-slate-300'\n              }`}\n            >\n              {m.label}\n            </button>\n          ))}\n        </div>\n      </div>\n    </nav>\n  );\n};
+    <nav className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-xl bg-black/20 border-b border-white/10">
+      <div className="text-sm font-bold tracking-tighter text-slate-100 uppercase flex items-center gap-2">
+        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+        Desk of Rahul
+      </div >
+      <div className="flex gap-4 items-center">
+        <div className="flex bg-black/40 border border-white/10 p-1 rounded-lg">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`px-3 py-1 text-[10px] uppercase font-black rounded-md transition-all ${
+                mode === m.id ? 'bg-white text-black' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div >
+      </div >
+    </nav>
+  );
+};
 
 export default function Home() {
   const mode = useSceneStore((state) => state.mode);
@@ -212,4 +234,69 @@ export default function Home() {
   const currentConfig = modeConfigs[mode];
 
   return (
-    <div className=\"min-h-screen bg-[#020205] text-slate-100 font-sans overflow-x-hidden\">\n      <Head><title>Desk of Rahul | AI Operator</title></Head>\n      <Header />\n      <main className=\"relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32\">\n        <section className=\"h-[600px] rounded-3xl border border-white/10 bg-black/40 overflow-hidden relative flex items-center justify-center group\">\n          \n          {/* CYBER-LUXE BACKGROUND LAYER */}\n          <div className=\"absolute inset-0 z-0 bg-gradient-to-b from-blue-900/10 via-black to-black\" />\n          <HolographicASCII />\n          \n          {/* 3D OVERLAY LAYER */}\n          <div className=\"absolute inset-0 z-20\">\n            <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>\n              <SceneCanvas />\n            </Canvas>\n          </div>\n\n          <div className=\"absolute bottom-10 left-10 z-30\">\n             <div className=\"text-xs font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2\">\n               <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.accent} animate-pulse`} />\n               System State: {currentConfig.subtitle}\n             </div>\n             <div className={`text-4xl font-bold uppercase tracking-tighter transition-colors duration-500 ${currentConfig.color}`}>\n               {currentConfig.title}\n             </div>\n          </div>\n        </section\n        \n        <div className=\"grid grid-cols-1 lg:grid-cols-12 gap-12\">\n          <section className=\"lg:col-span-4 space-y-6\">\n            <div className=\"p-8 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10\">\n              <h3 className=\"text-xl font-bold text-slate-100 mb-4\">The AI Operator</h3>\n              <p className=\"text-sm text-slate-400 leading-relaxed\">{MODE_DATA[mode].about}</p>\n            </div>\n          </section>\n          <section className=\"lg:col-span-4 space-y-6\">\n            <div className=\"grid grid-cols-1 gap-4\">\n              {MODE_DATA[mode].thoughts.map((thought, i) => (\n                <div key={i} className=\"p-6 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10\">\n                  <h3 className=\"text-base font-bold text-slate-100\">{thought.title}</h3>\n                  <p className=\"text-xs text-slate-400\">{thought.excerpt}</p>\n                </div>\n              ))}\n            </div>\n          </section>\n          <section className=\"lg:col-span-4 space-y-6\">\n            <div className=\"space-y-4\">\n              {MODE_DATA[mode].projects.map((project, i) => (\n                <div key={i} className=\"p-5 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10\">\n                  <h4 className=\"text-sm font-bold text-slate-100\">{project.title}</h4>\n                  <p className=\"text-xs text-slate-400\">{project.description}</p>\n                </div>\n              ))}\n            </div>\n          </section>\n        </div\n      </main>\n      <footer className=\"py-12 px-6 border-t border-white/10 text-center\">\n        <div className=\"text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold\">\n          © 2026 Desk of Rahul // System Operator OS\n        </div>\n      </footer>\n      <CommandPalette />\n    </div>\n  );\n}
+    <div className="min-h-screen bg-[#020205] text-slate-100 font-sans overflow-x-hidden">
+      <Head><title>Desk of Rahul | AI Operator</title></Head>
+      <Header />
+      <main className="relative z-10 pt-24 px-6 max-w-7xl mx-auto space-y-24 pb-32">
+        <section className="h-[600px] rounded-3xl border border-white/10 bg-black/40 overflow-hidden relative flex items-center justify-center group">
+          
+          {/* CYBER-LUXE BACKGROUND LAYER */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-blue-900/10 via-black to-black" />
+          <HolographicASCII />
+          
+          {/* 3D OVERLAY LAYER */}
+          <div className="absolute inset-0 z-20">
+            <Canvas dpr={[1, 2]} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+              <SceneCanvas />
+            </Canvas>
+          </div >
+
+          <div className="absolute bottom-10 left-10 z-30">
+             <div className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+               <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.accent} animate-pulse`} />
+               System State: {currentConfig.subtitle}
+             </div >
+             <div className={`text-4xl font-bold uppercase tracking-tighter transition-colors duration-500 ${currentConfig.color}`}>
+               {currentConfig.title}
+             </div >
+          </div >
+        </section>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <section className="lg:col-span-4 space-y-6">
+            <div className="p-8 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
+              <h3 className="text-xl font-bold text-slate-100 mb-4">The AI Operator</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">{MODE_DATA[mode].about}</p>
+            </div >
+          </section>
+          <section className="lg:col-span-4 space-y-6">
+            <div className="grid grid-cols-1 gap-4">
+              {MODE_DATA[mode].thoughts.map((thought, i) => (
+                <div key={i} className="p-6 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
+                  <h3 className="text-base font-bold text-slate-100">{thought.title}</h3>
+                  <p className="text-xs text-slate-400">{thought.excerpt}</p>
+                </div >
+              ))}
+            </div >
+          </section>
+          <section className="lg:col-span-4 space-y-6">
+            <div className="space-y-4">
+              {MODE_DATA[mode].projects.map((project, i) => (
+                <div key={i} className="p-5 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10">
+                  <h4 className="text-sm font-bold text-slate-100">{project.title}</h4>
+                  <p className="text-xs text-slate-400">{project.description}</p>
+                </div >
+              ))}
+            </div >
+          </section>
+        </div >
+      </main>
+      <footer className="py-12 px-6 border-t border-white/10 text-center">
+        <div className="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">
+          © 2026 Desk of Rahul // System Operator OS
+        </div >
+      </footer >
+      <CommandPalette />
+    </div >
+  );
+}
