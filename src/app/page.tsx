@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import CommandPalette from '@/components/CommandPalette';
 import { useSceneStore } from '@/store/useSceneStore';
 
-type CharacterMode = 'hacker' | 'builder' | 'operator';
+type CharacterMode = 'builder' | 'operator';
 
 interface Project {
   title: string;
@@ -62,7 +62,6 @@ function HolographicASCII() {
   const [loading, setLoading] = useState(true);
 
   const asciiMap = {
-    hacker: 'https://ascii.rest/typewriter/',
     builder: 'https://ascii.rest/typewriter/',
     operator: 'https://ascii.rest/earthrise/',
   };
@@ -79,7 +78,6 @@ function HolographicASCII() {
   }, [mode]);
 
   const themeColors = {
-    hacker: 'text-blue-500',
     builder: 'text-emerald-500',
     operator: 'text-white',
   };
@@ -88,7 +86,7 @@ function HolographicASCII() {
     <div className={`absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none z-10 transition-colors duration-1000 ${themeColors[mode]}`}>
       <pre className={`font-mono text-[10px] leading-none whitespace-pre opacity-30 animate-pulse ${loading ? 'opacity-0' : 'opacity-30'}`} 
            style={{ 
-             textShadow: `0 0 10px ${mode === 'hacker' ? '#3b82f6' : mode === 'builder' ? '#10b981' : '#ffffff'}`,
+             textShadow: `0 0 10px ${mode === 'builder' ? '#10b981' : '#ffffff'}`,
              filter: 'blur(0.5px)'
            }}>
         {ascii}
@@ -101,7 +99,6 @@ function GlassArtifact() {
   const mode = useSceneStore((state) => state.mode);
   
   const themeColors = {
-    hacker: '#3b82f6',
     builder: '#10b981',
     operator: '#ffffff',
   };
@@ -159,7 +156,6 @@ function SceneCanvas() {
 const Header = () => {
   const { mode, setMode } = useSceneStore();
   const modes: { id: CharacterMode; label: string }[] = [
-    { id: 'hacker', label: 'Hacker' },
     { id: 'builder', label: 'Builder' },
     { id: 'operator', label: 'Operator' },
   ];
@@ -192,7 +188,6 @@ const Header = () => {
 export default function Home() {
   const mode = useSceneStore((state) => state.mode);
   const modeConfigs = {
-    hacker: { title: 'Agentic Architecture', subtitle: 'DEEP_TECH_MODE', color: 'text-blue-400', accent: 'bg-blue-500', bg: 'https://images.unsplash.com/photo-1550751827-4b3f4f24676a?auto=format&fit=crop&q=80&w=2070' },
     builder: { title: 'Production Implementation', subtitle: 'PRODUCTION_MODE', color: 'text-emerald-400', accent: 'bg-emerald-500', bg: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069' },
     operator: { title: 'Operational Command', subtitle: 'COMMAND_MODE', color: 'text-white', accent: 'bg-white', bg: 'https://images.unsplash.com/photo-1497366811353-6870744d0948?auto=format&fit=crop&q=80&w=2070' },
   };
